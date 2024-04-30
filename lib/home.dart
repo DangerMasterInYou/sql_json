@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/authorization.dart';
 import '/developer/listDeveloperApplications.dart';
+import '/user/listUserApplications.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -38,7 +39,7 @@ class HomePage extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => DeveloperApplicationsPage()),
+                        builder: (context) => UserApplicationsPage()),
                   );
                 },
                 child: Text('List'),

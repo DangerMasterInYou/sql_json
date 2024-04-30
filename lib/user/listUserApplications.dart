@@ -1,189 +1,62 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import '/db/db.dart';
+import '/db/dbMap.dart';
 import '/readJsonFile.dart';
-import '/home.dart';
-import 'package:mysql1/mysql1.dart';
+import '/user/createApplication.dart';
 
-class UserApplicationsPage extends StatefulWidget {
-  @override
-  _UserApplicationsState createState() => _UserApplicationsState();
-}
-
-class _UserApplicationsState extends State with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
+class UserApplicationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final user_id = getFromJsonFile("user_id");
+
     return Scaffold(
       appBar: AppBar(
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () async {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                );
-              },
-            );
-          },
-        ),
         title: Text('Заявки'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(text: 'Новые'),
-            Tab(text: 'Мои'),
-          ],
-        ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          NewApplicationsTab(),
-          MyApplicationsTab(),
-        ],
-      ),
+      body: _buildApplicationsList(user_id),
     );
   }
-}
 
-class NewApplicationsTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: fetchNewApplications(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Ошибка загрузки данных'));
-        } else {
-          final applications = snapshot.data!;
-          return ListView.builder(
-            itemCount: applications.length,
-            itemBuilder: (context, index) {
-              final application = applications[index];
-              return ListTile(
-                title: Text(application['name']),
-                subtitle: Text(application['status']),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditApplicationsPage(
-                          applicationId: application['id']),
-                    ),
-                  );
-                },
-              );
-            },
+  Widget _buildApplicationsList(dynamic user_id) {
+    final applications = _getApplicationsForUser(user_id);
+
+    return ListView.builder(
+        itemCount: applications.length,
+        itemBuilder: (context, index) {
+          final app = applications[index];
+
+          return _ApplicationTile(
+            application: app,
           );
-        }
-      },
-    );
+        });
+  }
+
+  List<Map<String, dynamic>> _getApplicationsForUser(dynamic user_id) {
+    final List<Map<String, dynamic>> userApplications = [];
+    applications.forEach((int key, Map<String, dynamic> application) {
+      if (application["senderId"] == user_id || 1 == 1) {
+        userApplications.add(application);
+      }
+    });
+    return userApplications;
   }
 }
 
-class MyApplicationsTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: fetchMyApplications(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Ошибка загрузки данных'));
-        } else {
-          final applications = snapshot.data!;
-          return ListView.builder(
-            itemCount: applications.length,
-            itemBuilder: (context, index) {
-              final application = applications[index];
-              return ListTile(
-                title: Text(application['name']),
-                subtitle: Text(application['status']),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditApplicationsPage(
-                          applicationId: application['id']),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        }
-      },
-    );
-  }
-}
+class _ApplicationTile extends StatelessWidget {
+  final Map<String, dynamic> application;
 
-Future<List<Map<String, dynamic>>> fetchNewApplications() async {
-  final conn = await Database().connectToDatabase();
-  dynamic user_id = getFromJsonFile("user_id");
-
-  final results = await conn.query('''
-    SELECT id, name, status
-    FROM Applications
-    WHERE sender_id = ?;
-  ''', [user_id]);
-
-  await conn.close();
-
-  return results.toList();
-}
-
-Future<List<Map<String, dynamic>>> fetchMyApplications() async {
-  final conn = await Database().connectToDatabase();
-  dynamic user_id = getFromJsonFile("user_id");
-  dynamic role_id = getFromJsonFile("role_id");
-
-  final results = await conn.query('''
-    SELECT id, name, status
-    FROM Applications
-    WHERE role_id = ? AND sender_id = ?;
-  ''', [role_id, user_id]);
-
-  await conn.close();
-
-  //return results.toList();
-  return results.toList();
-}
-
-class EditApplicationsPage extends StatelessWidget {
-  final int applicationId;
-
-  const EditApplicationsPage({required this.applicationId});
+  const _ApplicationTile({required this.application});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Редактировать Заявку'),
-      ),
-      body: Center(
-        child: Text('Редактирование заявки с id: $applicationId'),
-      ),
+    final name = application['name'];
+    final statusId = application['statusId'].toString();
+
+    return ListTile(
+      title: Text(name),
+      subtitle: Text(statuses[statusId].toString()),
+      onTap: () {},
     );
   }
 }
