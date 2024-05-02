@@ -5,41 +5,63 @@ import '/db/dbMap.dart';
 import '/readJsonFile.dart';
 import '/user/createApplication.dart';
 
-class UserApplicationsPage extends StatelessWidget {
+class UserApplicationsPage extends StatefulWidget {
+  @override
+  _UserApplicationsPageState createState() => _UserApplicationsPageState();
+}
+
+class _UserApplicationsPageState extends State<UserApplicationsPage> {
+  late Future<List<Map<String, dynamic>>> _applicationsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _applicationsFuture = _getApplicationsForUser();
+  }
+
+  Future<List<Map<String, dynamic>>> _getApplicationsForUser() async {
+    final user_id = int.parse((await getFromJsonFile("user_id")).toString());
+    final List<Map<String, dynamic>> userApplications = [];
+
+    applications.forEach((int key, Map<String, dynamic> application) {
+      if (application["senderId"] == user_id) {
+        userApplications.add(application);
+      }
+    });
+
+    return userApplications;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final user_id = getFromJsonFile("user_id");
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Заявки'),
       ),
-      body: _buildApplicationsList(user_id),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _applicationsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Ошибка загрузки данных'));
+          } else {
+            final applications = snapshot.data ?? [];
+            return _buildApplicationsList(applications);
+          }
+        },
+      ),
     );
   }
 
-  Widget _buildApplicationsList(dynamic user_id) {
-    final applications = _getApplicationsForUser(user_id);
-
+  Widget _buildApplicationsList(List<Map<String, dynamic>> applications) {
     return ListView.builder(
-        itemCount: applications.length,
-        itemBuilder: (context, index) {
-          final app = applications[index];
-
-          return _ApplicationTile(
-            application: app,
-          );
-        });
-  }
-
-  List<Map<String, dynamic>> _getApplicationsForUser(dynamic user_id) {
-    final List<Map<String, dynamic>> userApplications = [];
-    applications.forEach((int key, Map<String, dynamic> application) {
-      if (application["senderId"] == user_id || 1 == 1) {
-        userApplications.add(application);
-      }
-    });
-    return userApplications;
+      itemCount: applications.length,
+      itemBuilder: (context, index) {
+        final application = applications[index];
+        return _ApplicationTile(application: application);
+      },
+    );
   }
 }
 
@@ -52,11 +74,14 @@ class _ApplicationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = application['name'];
     final statusId = application['statusId'].toString();
+    final status = statuses[int.parse(statusId)] ?? '';
 
     return ListTile(
       title: Text(name),
-      subtitle: Text(statuses[int.parse(statusId)].toString()),
-      onTap: () {},
+      subtitle: Text(status),
+      onTap: () {
+        // Обработка нажатия на заявку
+      },
     );
   }
 }

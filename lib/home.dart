@@ -39,11 +39,11 @@ class HomePage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () async {
                   Widget nextPage;
-                  final role_id = await getFromJsonFile("role_id");
+                  final role_id = roles[await getFromJsonFile("role_id")];
 
-                  if (role_id == 'Developer' || 3 == 3) {
+                  if (role_id == 'Developer') {
                     nextPage = DeveloperApplicationsPage();
-                  } else if (role_id == 'User' || 3 == 3) {
+                  } else if (role_id == 'User') {
                     nextPage = UserApplicationsPage();
                   } else {
                     nextPage = LoginScreen();
