@@ -1,10 +1,11 @@
-//authorization.dart
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import '/db/db.dart';
 import '/message.dart';
+import '/db/dbMap.dart';
+import '/readJsonFile.dart';
+import '/home.dart';
 
 class LoginScreen extends StatelessWidget {
   @override
@@ -23,7 +24,7 @@ class LoginForm extends StatefulWidget {
   _LoginFormState createState() => _LoginFormState();
 }
 
-class _LoginFormState extends State {
+class _LoginFormState extends State<LoginForm> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -31,24 +32,33 @@ class _LoginFormState extends State {
     final String login = _loginController.text;
     final String password = _passwordController.text;
 
-    final conn = await Database().connectToDatabase();
+    // Проверка параметров авторизации (заменить на нужную логику)
+    bool isAuthenticated = false;
+    int userId = -1;
+    int roleId = -1;
+    int categoryId = -1;
 
-    final results = await conn.query(
-        'SELECT * FROM Users WHERE login = ? AND password = ?',
-        [login, password]);
-    if (results.isNotEmpty) {
-      final row = results.first;
-      final int userId = row['id'];
-      final int roleId = row['role_id'];
-      final int categoryId = row['category_id'];
+    for (final key in users.keys) {
+      final user = users[key];
+      if (user != null &&
+          user['login'] == login &&
+          user['password'] == password) {
+        isAuthenticated = true;
+        userId = key;
+        roleId = int.parse(user['roleId'].toString());
+        categoryId = int.parse(user['categoryId'].toString());
+        break;
+      }
+    }
 
+    if (isAuthenticated) {
       // Создание JSON файла при успешной авторизации
       final Map<String, dynamic> user = {
         'user_id': userId,
         'username': login,
         'password': password,
-        'role_id': roleId,
-        'category_id': categoryId,
+        'role_id': roleId, // Используем roleId из dbMap.dart
+        'category_id': categoryId, // Используем categoryId из dbMap.dart
       };
       final String jsonString = jsonEncode(user);
 
@@ -60,12 +70,14 @@ class _LoginFormState extends State {
       final File file = File(path);
       await file.writeAsString(jsonString);
 
-      // Переход на следующий экран или выполнение других действий
+      // Переход на следующий экран (HomePage)
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
     } else {
-      showAlertDialog(context, "Hello");
+      showAlertDialog(context, "Incorrect login or password");
     }
-
-    await conn.close();
   }
 
   @override
@@ -92,7 +104,7 @@ class _LoginFormState extends State {
           SizedBox(height: 24.0),
           ElevatedButton(
             onPressed: _login,
-            child: Text('Вход'),
+            child: Text('Login'),
           ),
         ],
       ),
