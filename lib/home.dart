@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '/authorization.dart';
 import '/developer/listDeveloperApplications.dart';
 import '/user/listUserApplications.dart';
+import '/db/dbMap.dart';
+import '/readJsonFile.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -36,10 +38,22 @@ class HomePage extends StatelessWidget {
             Container(
               child: ElevatedButton(
                 onPressed: () async {
+                  Widget nextPage;
+                  final role_id = await getFromJsonFile("role_id");
+
+                  if (role_id == 'Developer' || 3 == 3) {
+                    nextPage = DeveloperApplicationsPage();
+                  } else if (role_id == 'User' || 3 == 3) {
+                    nextPage = UserApplicationsPage();
+                  } else {
+                    nextPage = LoginScreen();
+                  }
+
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => UserApplicationsPage()),
+                      builder: (context) => nextPage,
+                    ),
                   );
                 },
                 child: Text('List'),

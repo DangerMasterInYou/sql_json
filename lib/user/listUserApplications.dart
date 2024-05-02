@@ -55,7 +55,7 @@ class _ApplicationTile extends StatelessWidget {
 
     return ListTile(
       title: Text(name),
-      subtitle: Text(statuses[statusId].toString()),
+      subtitle: Text(statuses[int.parse(statusId)].toString()),
       onTap: () {},
     );
   }
