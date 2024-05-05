@@ -1,25 +1,23 @@
 var corpuses = {
   0: 'Административный',
-  1: 'Первый,',
+  1: 'Первый',
   2: 'Второй',
   3: 'Третий',
   4: 'Четвёртый',
 };
 var statuses = {
-  0: 'Создано,',
+  0: 'Создано',
   1: 'Отклонено',
   2: 'Перенаправлено',
   3: 'Назначено',
   4: 'Выполнено',
   5: 'Завершено',
 };
-
 var roles = {
   0: 'User',
   1: 'Developer',
   2: 'Admin',
 };
-
 var categories = {
   0: 'Electrician',
   1: 'Carpenter',
@@ -62,7 +60,7 @@ var applications = {
     'categoryId': 3,
     'description': 'Пролили',
     'pathToPhoto': "",
-    'statusId': 3,
+    'statuseId': 3,
     'developerId': 3,
   },
   1: {
@@ -73,7 +71,7 @@ var applications = {
     'categoryId': 0,
     'description': 'Сломалось',
     'pathToPhoto': "",
-    'statusId': 1,
+    'statuseId': 1,
     'developerId': null,
   },
   2: {
@@ -84,7 +82,7 @@ var applications = {
     'categoryId': 4,
     'description': 'Сломалось',
     'pathToPhoto': "",
-    'statusId': 1,
+    'statuseId': 1,
     'developerId': null,
   },
   3: {
@@ -95,7 +93,18 @@ var applications = {
     'categoryId': 3,
     'description': 'Пролился',
     'pathToPhoto': "",
-    'statusId': 3,
+    'statuseId': 3,
+    'developerId': null,
+  },
+  4: {
+    'name': 'Пролит ацетон',
+    'senderId': 0,
+    'corpusId': 1,
+    'cabinet': 111,
+    'categoryId': 3,
+    'description': 'Пролился',
+    'pathToPhoto': "",
+    'statuseId': 0,
     'developerId': null,
   },
 };

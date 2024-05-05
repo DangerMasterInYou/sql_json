@@ -13,6 +13,18 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => DeveloperApplicationsPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Column(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '/db/dbMap.dart';
 import '/readJsonFile.dart';
 import '/user/createApplication.dart';
+import '/user/checkApplication.dart';
 
 class UserApplicationsPage extends StatefulWidget {
   @override
@@ -73,13 +74,21 @@ class _ApplicationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = application['name'];
-    final statusId = application['statusId'].toString();
-    final status = statuses[int.parse(statusId)] ?? '';
+    final statuseId = int.parse(application['statuseId']);
+    final statuse = (statuses[statuseId]).toString();
 
     return ListTile(
       title: Text(name),
-      subtitle: Text(status),
+      subtitle: Text(statuse),
       onTap: () {
+        // if (statuse == 'Выполнено') {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder: (context) => checkApplicationPage(),
+        //     ),
+        //   );
+        // }
         // Обработка нажатия на заявку
       },
     );

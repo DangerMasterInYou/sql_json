@@ -36,6 +36,7 @@ dependencies:
   mysql1: ^0.20.0
   hive: ^2.0.4
   hive_flutter: ^1.1.0
+  image_picker: ^1.1.0
 
 
   # The following adds the Cupertino Icons font to your application.
