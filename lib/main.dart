@@ -1,8 +1,11 @@
-// main.dart
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'authorization.dart';
-import 'home.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '/home.dart';
+import '/authorization.dart';
 
 void main() {
   runApp(MyApp());
@@ -12,42 +15,50 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Authorization Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: LoginScreen(),
+      home: AppStart(),
     );
   }
 }
 
-class SplashScreen extends StatelessWidget {
+class AppStart extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: checkIfUserLoggedIn(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        } else {
-          if (snapshot.data == true) {
-            return HomePage();
-          } else {
-            return LoginScreen();
-          }
-        }
-      },
-    );
+  _AppStartState createState() => _AppStartState();
+}
+
+class _AppStartState extends State<AppStart> {
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
   }
 
-  Future<bool> checkIfUserLoggedIn() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? username = prefs.getString('username');
-    String? password = prefs.getString('password');
-    return username != null && password != null;
+  Future<void> _checkLoginStatus() async {
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final File file = File('${directory.path}/user_data.json');
+
+    if (await file.exists()) {
+      // Файл существует
+      final String jsonData = await file.readAsString();
+      final Map<String, dynamic> userData = jsonDecode(jsonData);
+
+      // Проверка наличия данных пользователя
+      if (userData["user_id"] != null) {
+        // Пользователь успешно вошел в систему
+        setState(() {
+          _isLoggedIn = true;
+        });
+      }
+    } else {
+      setState(() {
+        _isLoggedIn = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isLoggedIn ? HomePage() : LoginScreen();
   }
 }

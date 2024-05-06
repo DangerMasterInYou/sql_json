@@ -1,4 +1,8 @@
 // home.dart
+import 'dart:convert';
+import 'dart:ffi';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/authorization.dart';
@@ -32,13 +36,23 @@ class HomePage extends StatelessWidget {
             Container(
               child: ElevatedButton(
                 onPressed: () async {
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  prefs.remove('user_id');
-                  prefs.remove('username');
-                  prefs.remove('password');
-                  prefs.remove('category_id');
-                  prefs.remove('role_id');
+                  final Map<String, dynamic> user = {
+                    'user_id': null,
+                    'username': null,
+                    'password': null,
+                    'role_id': null, // Используем roleId из dbMap.dart
+                    'category_id': null, // Используем categoryId из dbMap.dart
+                  };
+                  final String jsonString = jsonEncode(user);
+
+                  // Получение директории документов
+                  final Directory directory =
+                      await getApplicationDocumentsDirectory();
+                  final String path = directory.path + '/user_data.json';
+
+                  // Запись данных в файл
+                  final File file = File(path);
+                  await file.writeAsString(jsonString);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => LoginScreen()),

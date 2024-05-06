@@ -28,6 +28,8 @@ class _editApplicationPageState extends State<editApplicationPage> {
   late TextEditingController _statuseController;
   late TextEditingController _pathToPhotoController;
 
+  bool _isImagePickerActive = false; // Проверка активности пикера изображений
+
   @override
   void initState() {
     super.initState();
@@ -202,9 +204,15 @@ class _editApplicationPageState extends State<editApplicationPage> {
   }
 
   void _changePhoto() async {
+    if (_isImagePickerActive)
+      return; // Проверка на активность пикера изображений
+    _isImagePickerActive = true; // Установка флага активности
+
     final ImagePicker _picker = ImagePicker();
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.gallery);
+
+    _isImagePickerActive = false; // Сброс флага активности
 
     if (pickedFile != null) {
       setState(() {
