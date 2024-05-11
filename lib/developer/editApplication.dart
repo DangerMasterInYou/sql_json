@@ -65,21 +65,14 @@ class _editApplicationPageState extends State<editApplicationPage> {
         child: Container(
           width: screenWidth,
           height: screenWidth,
-          child: Image.network(
-            _pathToPhotoController.text,
+          child: Image.file(
+            File(_pathToPhotoController
+                .text), // Используйте File для загрузки изображения с пути
             fit: BoxFit.cover,
-            loadingBuilder: (BuildContext context, Widget child,
-                ImageChunkEvent? loadingProgress) {
-              if (loadingProgress == null) {
-                return child;
-              } else {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            },
             errorBuilder:
                 (BuildContext context, Object error, StackTrace? stackTrace) {
+              print(
+                  'Error loading image: $error'); // Выводим ошибку в консоль для дальнейшего анализа
               return Center(
                 child: Icon(Icons.error, size: screenWidth),
               );
