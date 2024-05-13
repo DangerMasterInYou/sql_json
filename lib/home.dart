@@ -65,7 +65,8 @@ class HomePage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () async {
                   Widget nextPage;
-                  final role_id = roles[await getFromJsonFile("role_id")];
+                  final role_id =
+                      roles[(await getFromJsonFile("role_id")).toString()];
 
                   if (role_id == 'Developer') {
                     nextPage = DeveloperApplicationsPage();

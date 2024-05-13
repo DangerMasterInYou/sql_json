@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,7 +8,7 @@ import '/developer/listDeveloperApplications.dart';
 import 'package:path_provider/path_provider.dart';
 
 class editApplicationPage extends StatefulWidget {
-  final int applicationId;
+  final String applicationId;
 
   editApplicationPage({required this.applicationId});
 
@@ -66,13 +65,9 @@ class _editApplicationPageState extends State<editApplicationPage> {
           width: screenWidth,
           height: screenWidth,
           child: Image.file(
-            File(_pathToPhotoController
-                .text), // Используйте File для загрузки изображения с пути
+            File(_pathToPhotoController.text),
             fit: BoxFit.cover,
-            errorBuilder:
-                (BuildContext context, Object error, StackTrace? stackTrace) {
-              print(
-                  'Error loading image: $error'); // Выводим ошибку в консоль для дальнейшего анализа
+            errorBuilder: (context, error, stackTrace) {
               return Center(
                 child: Icon(Icons.error, size: screenWidth),
               );
@@ -169,6 +164,7 @@ class _editApplicationPageState extends State<editApplicationPage> {
   }
 
   void _completeChanges() async {
+    applications[widget.applicationId]?['description'] = "4";
     applications[widget.applicationId]?['description'] =
         _descriptionController.text;
     applications[widget.applicationId]?['pathToPhoto'] =
@@ -176,7 +172,12 @@ class _editApplicationPageState extends State<editApplicationPage> {
 
     await _saveDbMap();
 
-    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DeveloperApplicationsPage(),
+      ),
+    );
   }
 
   Future<void> _saveDbMap() async {
@@ -208,9 +209,35 @@ class _editApplicationPageState extends State<editApplicationPage> {
     _isImagePickerActive = false; // Сброс флага активности
 
     if (pickedFile != null) {
+      final savedImagePath =
+          await FileUtils.saveImageToAppDirectory(File(pickedFile.path));
+
       setState(() {
-        _pathToPhotoController.text = pickedFile.path;
+        _pathToPhotoController.text = savedImagePath;
       });
     }
+  }
+}
+
+class FileUtils {
+  static Future<String> saveImageToAppDirectory(File imageFile) async {
+    // Получаем путь к директории приложения
+    final appDir = await getApplicationDocumentsDirectory();
+
+    // Генерируем уникальное имя для изображения
+    final uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}.png';
+
+    // Создаем директорию photoForApplications, если она не существует
+    final photoDir = Directory('${appDir.path}/photoForApplications');
+    if (!photoDir.existsSync()) {
+      photoDir.createSync(recursive: true);
+    }
+
+    // Копируем файл изображения в директорию приложения
+    final savedImageFile =
+        await imageFile.copy('${photoDir.path}/$uniqueFileName');
+
+    // Возвращаем путь к сохраненному файлу
+    return savedImageFile.path;
   }
 }

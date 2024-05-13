@@ -7,7 +7,7 @@ import '/developer/listDeveloperApplications.dart';
 import 'package:path_provider/path_provider.dart';
 
 class takeApplicationPage extends StatefulWidget {
-  final int applicationId;
+  final String applicationId;
 
   takeApplicationPage({required this.applicationId});
 
@@ -25,6 +25,7 @@ class _takeApplicationPageState extends State<takeApplicationPage> {
   late TextEditingController _locationController;
   late TextEditingController _statuseController;
   late TextEditingController _pathToPhotoController;
+  late String _selectedCategory;
 
   @override
   void initState() {
@@ -51,6 +52,42 @@ class _takeApplicationPageState extends State<takeApplicationPage> {
         text: (statuses[application?['statuseId']] ?? '') as String?);
     _pathToPhotoController = TextEditingController(
         text: (application?['pathToPhoto'] ?? '') as String?);
+    _selectedCategory =
+        categories[application?['categoryId']] ?? categories.keys.first;
+  }
+
+  Widget photoWidget() {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    if (_pathToPhotoController.text.isNotEmpty) {
+      return GestureDetector(
+        child: Container(
+          width: screenWidth,
+          height: screenWidth,
+          child: Image.file(
+            File(_pathToPhotoController.text),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Center(
+                child: Icon(Icons.error, size: screenWidth),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      return GestureDetector(
+        child: Container(
+          width: screenWidth,
+          height: screenWidth,
+          child: Center(
+            child: Icon(
+              Icons.photo,
+              size: screenWidth,
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -78,42 +115,67 @@ class _takeApplicationPageState extends State<takeApplicationPage> {
             children: [
               TextField(
                 controller: _nameController,
+                readOnly: true,
                 decoration: InputDecoration(labelText: 'Name'),
               ),
               SizedBox(height: 12.0),
               TextField(
                 controller: _descriptionController,
+                readOnly: true,
                 decoration: InputDecoration(labelText: 'Description'),
               ),
               TextField(
                 controller: _senderController,
+                readOnly: true,
                 decoration: InputDecoration(labelText: 'Отправитель'),
               ),
-              TextField(
-                controller: _categoryController,
-                decoration: InputDecoration(labelText: 'Категория'),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedCategory = newValue ?? '';
+                  });
+                },
+                items: categories.entries.map((entry) {
+                  return DropdownMenuItem<String>(
+                    value: entry.value,
+                    child: Text(entry.value),
+                  );
+                }).toList(),
+                decoration: InputDecoration(
+                  labelText: 'Категория',
+                ),
               ),
               TextField(
                 controller: _locationController,
+                readOnly: true,
                 decoration: InputDecoration(labelText: 'Место:'),
               ),
               TextField(
                 controller: _statuseController,
+                readOnly: true,
                 decoration: InputDecoration(labelText: 'Статус'),
               ),
               TextField(
                 controller: _developerController,
+                readOnly: true,
                 decoration: InputDecoration(labelText: 'Исполнитель'),
               ),
-              TextField(
-                controller: _pathToPhotoController,
-                decoration: InputDecoration(labelText: 'Фото'),
+              photoWidget(),
+              ElevatedButton(
+                onPressed: _saveChanges,
+                child: Text('Принять'),
+              ),
+              ElevatedButton(
+                onPressed: _saveChanges,
+                child: Text('Перенаправить'),
               ),
               SizedBox(height: 24.0),
               ElevatedButton(
                 onPressed: _saveChanges,
-                child: Text('Save Changes'),
+                child: Text('Отклонить'),
               ),
+              SizedBox(height: 24.0),
             ],
           ),
         ),

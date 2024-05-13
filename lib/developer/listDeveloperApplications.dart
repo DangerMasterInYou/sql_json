@@ -16,8 +16,8 @@ class DeveloperApplicationsPage extends StatefulWidget {
 class _DeveloperApplicationsPageState extends State<DeveloperApplicationsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  int? _categoryID;
-  int? _userID;
+  String? _categoryID;
+  String? _userID;
 
   @override
   void initState() {
@@ -27,8 +27,8 @@ class _DeveloperApplicationsPageState extends State<DeveloperApplicationsPage>
   }
 
   Future<void> _loadData() async {
-    _categoryID = int.parse((await getFromJsonFile("category_id")).toString());
-    _userID = int.parse((await getFromJsonFile("user_id")).toString());
+    _categoryID = (await getFromJsonFile("category_id")).toString();
+    _userID = (await getFromJsonFile("user_id")).toString();
     setState(() {}); // Обновляем состояние после загрузки данных
   }
 
@@ -60,16 +60,16 @@ class _DeveloperApplicationsPageState extends State<DeveloperApplicationsPage>
               controller: _tabController,
               children: [
                 _buildApplicationsList(
-                    (int key, Map<String, dynamic> application) {
+                    (String key, Map<String, dynamic> application) {
                   return application["categoryId"] == _categoryID;
                 }),
                 _buildApplicationsList(
-                    (int key, Map<String, dynamic> application) {
+                    (String key, Map<String, dynamic> application) {
                   return application["categoryId"] == _categoryID &&
-                      application["developerId"] == _userID;
+                      application["developerId"] == _userID.toString();
                 }),
                 _buildApplicationsList(
-                    (int key, Map<String, dynamic> application) {
+                    (String key, Map<String, dynamic> application) {
                   final statuse = statuses[application["statuseId"]];
                   return application["categoryId"] == _categoryID &&
                       statuse == "Создано" &&
@@ -82,27 +82,32 @@ class _DeveloperApplicationsPageState extends State<DeveloperApplicationsPage>
   }
 
   Widget _buildApplicationsList(
-      bool Function(int, Map<String, dynamic>) filterCondition) {
-    final appKeys = _getApplicationsForDeveloper(filterCondition);
+      bool Function(String, Map<String, dynamic>) filterCondition) {
+    final List<int> appKeys = _getApplicationsForDeveloper(filterCondition);
 
     return ListView.builder(
       itemCount: appKeys.length,
       itemBuilder: (context, index) {
-        final applicationId = appKeys[index];
-        return _ApplicationTile(
-          applicationId: applicationId,
-          application: applications[applicationId]!,
-        );
+        final applicationId = appKeys[index].toString();
+        if (_categoryID != null && _userID != null) {
+          return _ApplicationTile(
+            applicationId: applicationId,
+            application: applications[applicationId]!,
+          );
+        } else {
+          // Вероятно, вы хотите здесь вернуть какой-то виджет заглушки или обработать ситуацию, когда данные не загружены
+          return Container();
+        }
       },
     );
   }
 
   List<int> _getApplicationsForDeveloper(
-      bool Function(int, Map<String, dynamic>) filterCondition) {
+      bool Function(String, Map<String, dynamic>) filterCondition) {
     final List<int> appKeys = [];
     applications.entries.toList().forEach((entry) {
       if (filterCondition(entry.key, entry.value)) {
-        appKeys.add(entry.key);
+        appKeys.add(int.parse(entry.key));
       }
     });
     return appKeys;
@@ -110,7 +115,7 @@ class _DeveloperApplicationsPageState extends State<DeveloperApplicationsPage>
 }
 
 class _ApplicationTile extends StatelessWidget {
-  final int applicationId;
+  final String applicationId;
   final Map<String, dynamic> application;
 
   const _ApplicationTile(
@@ -120,11 +125,11 @@ class _ApplicationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = application['name'];
     final statuseId = application['statuseId'].toString();
-    final statuse = statuses[int.parse(statuseId)].toString();
+    final statuse = statuses[statuseId];
 
     return ListTile(
       title: Text(name),
-      subtitle: Text(statuse),
+      subtitle: Text(statuse ?? ""),
       onTap: () {
         if (statuse == "Создано") {
           Navigator.pushReplacement(

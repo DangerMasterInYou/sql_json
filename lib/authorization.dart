@@ -44,7 +44,7 @@ class _LoginFormState extends State<LoginForm> {
           user['login'] == login &&
           user['password'] == password) {
         isAuthenticated = true;
-        userId = key;
+        userId = int.parse(key);
         roleId = int.parse(user['roleId'].toString());
         categoryId = int.parse(user['categoryId'].toString());
         break;

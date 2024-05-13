@@ -24,8 +24,8 @@ class _UserApplicationsPageState extends State<UserApplicationsPage> {
     final user_id = int.parse((await getFromJsonFile("user_id")).toString());
     final List<Map<String, dynamic>> userApplications = [];
 
-    applications.forEach((int key, Map<String, dynamic> application) {
-      if (application["senderId"] == user_id) {
+    applications.forEach((String key, Map<String, dynamic> application) {
+      if (int.parse(application["senderId"]) == user_id) {
         userApplications.add(application);
       }
     });
