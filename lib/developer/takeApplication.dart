@@ -26,10 +26,20 @@ class _takeApplicationPageState extends State<takeApplicationPage> {
   late TextEditingController _statuseController;
   late TextEditingController _pathToPhotoController;
   late String _selectedCategory;
+  String? _categoryID;
+  String? _userID;
+
+  Future<void> _loadData() async {
+    _categoryID = (await getFromJsonFile("category_id")).toString();
+    _userID = (await getFromJsonFile("user_id")).toString();
+    setState(() {}); // Обновляем состояние после загрузки данных
+  }
 
   @override
   void initState() {
     super.initState();
+
+    _loadData();
 
     final application = applications[widget.applicationId];
 
@@ -52,8 +62,7 @@ class _takeApplicationPageState extends State<takeApplicationPage> {
         text: (statuses[application?['statuseId']] ?? '') as String?);
     _pathToPhotoController = TextEditingController(
         text: (application?['pathToPhoto'] ?? '') as String?);
-    _selectedCategory =
-        categories[application?['categoryId']] ?? categories.keys.first;
+    _selectedCategory = categories[application?['categoryId']] ?? "";
   }
 
   Widget photoWidget() {
@@ -86,6 +95,20 @@ class _takeApplicationPageState extends State<takeApplicationPage> {
             ),
           ),
         ),
+      );
+    }
+  }
+
+  Widget buttonWidget() {
+    if (_selectedCategory == _categoryController.text) {
+      return ElevatedButton(
+        onPressed: _takeChanges,
+        child: Text('Принять'),
+      );
+    } else {
+      return ElevatedButton(
+        onPressed: _redirectChanges,
+        child: Text('Перенаправить'),
       );
     }
   }
@@ -162,17 +185,10 @@ class _takeApplicationPageState extends State<takeApplicationPage> {
                 decoration: InputDecoration(labelText: 'Исполнитель'),
               ),
               photoWidget(),
-              ElevatedButton(
-                onPressed: _saveChanges,
-                child: Text('Принять'),
-              ),
-              ElevatedButton(
-                onPressed: _saveChanges,
-                child: Text('Перенаправить'),
-              ),
+              buttonWidget(),
               SizedBox(height: 24.0),
               ElevatedButton(
-                onPressed: _saveChanges,
+                onPressed: _rejectedChanges,
                 child: Text('Отклонить'),
               ),
               SizedBox(height: 24.0),
@@ -183,16 +199,53 @@ class _takeApplicationPageState extends State<takeApplicationPage> {
     );
   }
 
-  void _saveChanges() async {
-    final String name = _nameController.text;
-    final String description = _descriptionController.text;
-
-    applications[widget.applicationId]?['name'] = name;
-    applications[widget.applicationId]?['description'] = description;
+  void _takeChanges() async {
+    applications[widget.applicationId]?['statuseId'] = "3";
+    applications[widget.applicationId]?['developerId'] = _userID;
 
     await _saveDbMap();
 
-    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DeveloperApplicationsPage(),
+      ),
+    );
+  }
+
+  void _redirectChanges() async {
+    applications[widget.applicationId]?['categoryId'] = categories.entries
+        .firstWhere(
+          (entry) => entry.value == _selectedCategory,
+        )
+        .key;
+
+    await _saveDbMap();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DeveloperApplicationsPage(),
+      ),
+    );
+  }
+
+  void _rejectedChanges() async {
+    applications[widget.applicationId]?['statuseId'] = "1";
+    applications[widget.applicationId]?['categoryId'] = categories.entries
+        .firstWhere(
+          (entry) => entry.value == _selectedCategory,
+        )
+        .key;
+
+    await _saveDbMap();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DeveloperApplicationsPage(),
+      ),
+    );
   }
 
   Future<void> _saveDbMap() async {

@@ -164,7 +164,7 @@ class _editApplicationPageState extends State<editApplicationPage> {
   }
 
   void _completeChanges() async {
-    applications[widget.applicationId]?['description'] = "4";
+    applications[widget.applicationId]?['statuseId'] = "4";
     applications[widget.applicationId]?['description'] =
         _descriptionController.text;
     applications[widget.applicationId]?['pathToPhoto'] =
