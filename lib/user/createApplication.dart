@@ -1,147 +1,229 @@
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:path_provider/path_provider.dart';
-// import '/db/dbMap.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '/db/dbMap.dart';
+import '/readJsonFile.dart';
+import '/developer/listDeveloperApplications.dart';
+import 'package:path_provider/path_provider.dart';
 
-// class CreateApplicationPage extends StatefulWidget {
-//   @override
-//   _CreateApplicationPageState createState() => _CreateApplicationPageState();
-// }
+class CreateApplicationPage extends StatefulWidget {
+  @override
+  _CreateApplicationPageState createState() => _CreateApplicationPageState();
+}
 
-// class _CreateApplicationPageState extends State<CreateApplicationPage> {
-//   final TextEditingController _nameController = TextEditingController();
-//   final TextEditingController _descriptionController = TextEditingController();
+class _CreateApplicationPageState extends State<CreateApplicationPage> {
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _developerController;
+  late TextEditingController _senderController;
+  late TextEditingController _categoryController;
+  late TextEditingController _locationController;
+  late TextEditingController _statuseController;
+  late TextEditingController _pathToPhotoController;
 
-//   int _selectedCorpusId = 0;
-//   int _selectedCategoryId = 0;
+  bool _isImagePickerActive = false; // Проверка активности пикера изображений
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Create Application'),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.stretch,
-//           children: [
-//             TextFormField(
-//               controller: _nameController,
-//               decoration: InputDecoration(
-//                 labelText: 'Name',
-//               ),
-//             ),
-//             SizedBox(height: 12.0),
-//             DropdownButtonFormField<int>(
-//               value: _selectedCorpusId,
-//               onChanged: (value) {
-//                 setState(() {
-//                   _selectedCorpusId = value ?? 0;
-//                 });
-//               },
-//               items: corpuses.entries
-//                   .map((entry) => DropdownMenuItem<int>(
-//                         value: entry.key,
-//                         child: Text(entry.value),
-//                       ))
-//                   .toList(),
-//               decoration: InputDecoration(
-//                 labelText: 'Corpus',
-//               ),
-//             ),
-//             SizedBox(height: 12.0),
-//             DropdownButtonFormField<int>(
-//               value: _selectedCategoryId,
-//               onChanged: (value) {
-//                 setState(() {
-//                   _selectedCategoryId = value ?? 0;
-//                 });
-//               },
-//               items: categories.entries
-//                   .map((entry) => DropdownMenuItem<int>(
-//                         value: entry.key,
-//                         child: Text(entry.value),
-//                       ))
-//                   .toList(),
-//               decoration: InputDecoration(
-//                 labelText: 'Category',
-//               ),
-//             ),
-//             SizedBox(height: 12.0),
-//             TextFormField(
-//               controller: _descriptionController,
-//               decoration: InputDecoration(
-//                 labelText: 'Description',
-//               ),
-//             ),
-//             SizedBox(height: 24.0),
-//             ElevatedButton(
-//               onPressed: _createApplication,
-//               child: Text('Create Application'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
+  @override
+  void initState() {
+    super.initState();
 
-//   void _createApplication() async {
-//     final String name = _nameController.text.trim();
-//     final String description = _descriptionController.text.trim();
+    _nameController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _categoryController = TextEditingController();
+    _locationController = TextEditingController();
+    _pathToPhotoController = TextEditingController();
+  }
 
-//     if (name.isEmpty || description.isEmpty) {
-//       _showAlertDialog('Name and Description are required.');
-//       return;
-//     }
+  Widget photoWidget() {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    if (_pathToPhotoController.text.isNotEmpty) {
+      return GestureDetector(
+        onTap: _changePhoto,
+        child: Container(
+          width: screenWidth,
+          height: screenWidth,
+          child: Image.file(
+            File(_pathToPhotoController.text),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Center(
+                child: Icon(Icons.error, size: screenWidth),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: _changePhoto,
+        child: Container(
+          width: screenWidth,
+          height: screenWidth,
+          child: Center(
+            child: Icon(
+              Icons.photo,
+              size: screenWidth,
+            ),
+          ),
+        ),
+      );
+    }
+  }
 
-//     // Generate a unique key for the new application
-//     int newApplicationKey = applications.keys.isEmpty
-//         ? 0
-//         : applications.keys.reduce((key1, key2) => key1 > key2 ? key1 : key2) +
-//             1;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => DeveloperApplicationsPage(),
+              ),
+            );
+          },
+        ),
+        title: Text('Создать заявку'),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(14.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+              ),
+              SizedBox(height: 12.0),
+              TextField(
+                controller: _developerController,
+                decoration: InputDecoration(labelText: 'Исполнитель'),
+              ),
+              TextField(
+                controller: _categoryController,
+                decoration: InputDecoration(labelText: 'Категория'),
+              ),
+              TextField(
+                controller: _locationController,
+                decoration: InputDecoration(labelText: 'Место'),
+              ),
+              TextField(
+                controller: _statuseController,
+                decoration: InputDecoration(labelText: 'Статус'),
+              ),
+              TextField(
+                controller: _descriptionController,
+                decoration: InputDecoration(labelText: 'Description'),
+              ),
+              photoWidget(),
+              SizedBox(height: 24.0),
+              ElevatedButton(
+                onPressed: _saveApplication,
+                child: Text('Сохранить'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-//     // Create a new application
-//     final newApplication = {
-//       'name': name,
-//       'senderId': 0, // Assuming senderId is the current user's id
-//       'corpusId': _selectedCorpusId,
-//       'cabinet': 0, // Assuming cabinet is not required for now
-//       'categoryId': _selectedCategoryId,
-//       'description': description,
-//       'pathToPhoto': "", // Assuming photo is not required for now
-//       'statuseId': 0, // Assuming statusId is not required for now
-//       'developerId': null, // Assuming developerId is not required for now
-//     };
+  void _saveApplication() async {
+    final newApplicationId = (applications.length + 1).toString();
 
-//     // Add the new application to the applications map
-//     applications[newApplicationKey] = newApplication;
+    applications[newApplicationId] = {
+      'name': _nameController.text,
+      'description': _descriptionController.text,
+      'developerId': null,
+      'senderId': users.entries
+          .firstWhere(
+            (entry) => entry.value['login'] == _senderController.text,
+            orElse: () => MapEntry('', {}),
+          )
+          .key,
+      'categoryId': categories.entries
+          .firstWhere(
+            (entry) => entry.value == _categoryController.text,
+            orElse: () => MapEntry('', ''),
+          )
+          .key,
+      'corpus': _locationController.text.split('/')[0].trim(),
+      'cabinet': _locationController.text.split('/')[1].trim(),
+      'statuseId': "0",
+      'pathToPhoto': _pathToPhotoController.text,
+    };
 
-//     // Save the updated applications map to a JSON file
-//     final String jsonString =
-//         JsonEncoder.withIndent('  ').convert(applications);
-//     final Directory directory = await getApplicationDocumentsDirectory();
-//     final String path = directory.path + '/applications.json';
-//     final File file = File(path);
-//     await file.writeAsString(jsonString);
+    await _saveDbMap();
 
-//     // Show success message
-//     _showAlertDialog('Application created successfully.');
-//   }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DeveloperApplicationsPage(),
+      ),
+    );
+  }
 
-//   void _showAlertDialog(String message) {
-//     showDialog(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         title: Text('Message'),
-//         content: Text(message),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context),
-//             child: Text('OK'),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+  Future<void> _saveDbMap() async {
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final String path = directory.path + '/dbMap.dart';
+
+    final String dbMapAsString = '''
+      var corpuses = ${jsonEncode(corpuses)};
+      var statuses = ${jsonEncode(statuses)};
+      var roles = ${jsonEncode(roles)};
+      var categories = ${jsonEncode(categories)};
+      var users = ${jsonEncode(users)};
+      var applications = ${jsonEncode(applications)};
+    ''';
+
+    final File file = File(path);
+    await file.writeAsString(dbMapAsString);
+  }
+
+  void _changePhoto() async {
+    if (_isImagePickerActive)
+      return; // Проверка на активность пикера изображений
+    _isImagePickerActive = true; // Установка флага активности
+
+    final ImagePicker _picker = ImagePicker();
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
+
+    _isImagePickerActive = false; // Сброс флага активности
+
+    if (pickedFile != null) {
+      final savedImagePath =
+          await FileUtils.saveImageToAppDirectory(File(pickedFile.path));
+
+      setState(() {
+        _pathToPhotoController.text = savedImagePath;
+      });
+    }
+  }
+}
+
+class FileUtils {
+  static Future<String> saveImageToAppDirectory(File imageFile) async {
+    // Получаем путь к директории приложения
+    final appDir = await getApplicationDocumentsDirectory();
+
+    // Генерируем уникальное имя для изображения
+    final uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}.png';
+
+    // Создаем директорию photoForApplications, если она не существует
+    final photoDir = Directory('${appDir.path}/photoForApplications');
+    if (!photoDir.existsSync()) {
+      photoDir.createSync(recursive: true);
+    }
+
+    // Копируем файл изображения в директорию приложения
+    final savedImageFile =
+        await imageFile.copy('${photoDir.path}/$uniqueFileName');
+
+    // Возвращаем путь к сохраненному файлу
+    return savedImageFile.path;
+  }
+}

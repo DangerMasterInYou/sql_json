@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_try_with_api/home.dart';
 import '/db/dbMap.dart';
 import '/readJsonFile.dart';
 import '/user/createApplication.dart';
@@ -37,6 +38,15 @@ class _UserApplicationsPageState extends State<UserApplicationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          },
+        ),
         title: Text('Заявки'),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
